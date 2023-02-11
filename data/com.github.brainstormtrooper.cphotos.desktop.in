@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=cphotos
+Exec=cphotos
+Icon=com.github.brainstormtrooper.cphotos
+Terminal=false
+Type=Application
+Categories=GTK;
+StartupNotify=true

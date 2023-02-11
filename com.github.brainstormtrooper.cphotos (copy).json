@@ -1,0 +1,137 @@
+{
+    "app-id" : "com.github.brainstormtrooper.cphotos",
+    "runtime" : "org.gnome.Platform",
+    "runtime-version" : "43",
+    "sdk" : "org.gnome.Sdk",
+    "command" : "cphotos",
+    "finish-args" : [
+        "--share=network",
+        "--share=ipc",
+        "--socket=fallback-x11",
+        "--device=dri",
+        "--socket=wayland",
+        "--talk-name=org.gnome.OnlineAccounts"
+    ],
+    "cleanup" : [
+        "/include",
+        "/lib/pkgconfig",
+        "/man",
+        "/share/doc",
+        "/share/gtk-doc",
+        "/share/man",
+        "/share/pkgconfig",
+        "*.la",
+        "*.a"
+    ],
+    "modules" : [
+    {
+    "name": "python3-tomli",
+    "buildsystem": "simple",
+    "build-commands": [
+        "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"tomli\" --no-build-isolation"
+    ],
+    "sources": [
+        {
+            "type": "file",
+            "url": "https://files.pythonhosted.org/packages/97/75/10a9ebee3fd790d20926a90a2547f0bf78f371b2f13aa822c759680ca7b9/tomli-2.0.1-py3-none-any.whl",
+            "sha256": "939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"
+        }
+    ]
+},
+    {
+    "name": "python3-jinja2",
+    "buildsystem": "simple",
+    "build-commands": [
+        "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"jinja2\" --no-build-isolation"
+    ],
+    "sources": [
+        {
+            "type": "file",
+            "url": "https://files.pythonhosted.org/packages/bc/c3/f068337a370801f372f2f8f6bad74a5c140f6fda3d9de154052708dd3c65/Jinja2-3.1.2-py3-none-any.whl",
+            "sha256": "6088930bfe239f0e6710546ab9c19c9ef35e29792895fed6e6e31a023a182a61"
+        },
+        {
+            "type": "file",
+            "url": "https://files.pythonhosted.org/packages/1d/97/2288fe498044284f39ab8950703e88abbac2abbdf65524d576157af70556/MarkupSafe-2.1.1.tar.gz",
+            "sha256": "7f91197cc9e48f989d12e4e6fbc46495c446636dfc81b9ccf50bb0ec74b91d4b"
+        }
+    ]
+},
+{
+    "name": "python3-typogrify",
+    "buildsystem": "simple",
+    "build-commands": [
+        "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"typogrify\" --no-build-isolation"
+    ],
+    "sources": [
+        {
+            "type": "file",
+            "url": "https://files.pythonhosted.org/packages/da/ed/1da76d11aa858ee23dac5b52d9ac2db7df02b89f7679d5d8970bcd44b59c/smartypants-2.0.1-py2.py3-none-any.whl",
+            "sha256": "8db97f7cbdf08d15b158a86037cd9e116b4cf37703d24e0419a0d64ca5808f0d"
+        },
+        {
+            "type": "file",
+            "url": "https://files.pythonhosted.org/packages/8a/bf/64959d6187d42472acb846bcf462347c9124952c05bd57e5769d5f28f9a6/typogrify-2.0.7.tar.gz",
+            "sha256": "8be4668cda434163ce229d87ca273a11922cb1614cb359970b7dc96eed13cb38"
+        }
+    ]
+},
+    {
+      "name": "gi-docgen",
+      "buildsystem": "meson",
+      "config-opts": [
+        "--libdir=lib"
+      ],
+      "builddir": true,
+      "sources": [
+        {
+          "type": "git",
+          "tag": "main",
+          "url": "https://gitlab.gnome.org/GNOME/gi-docgen.git"
+        }
+      ]
+    },
+    {
+      "name": "librest",
+      "buildsystem": "meson",
+      "config-opts": [
+        "--libdir=lib"
+      ],
+      "builddir": true,
+      "sources": [
+        {
+          "type": "git",
+          "tag": "0.9.1",
+          "url": "https://gitlab.gnome.org/GNOME/librest.git"
+        }
+      ]
+    },
+    {
+      "name": "gnome-online-accounts",
+      "buildsystem": "meson",
+      "config-opts": [
+        "--libdir=lib"
+      ],
+      "builddir": true,
+      "sources": [
+        {
+          "type": "git",
+          "tag": "3.46.0",
+          "url": "https://gitlab.gnome.org/GNOME/gnome-online-accounts.git"
+        }
+      ]
+    },
+
+        {
+            "name" : "cphotos",
+            "builddir" : true,
+            "buildsystem" : "meson",
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "file:///home/rick/Documents/work/BrainstormTrooper/gphotos"
+                }
+            ]
+        }
+    ]
+}

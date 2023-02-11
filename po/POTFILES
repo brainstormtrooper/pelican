@@ -1,0 +1,6 @@
+data/com.github.brainstormtrooper.cphotos.desktop.in
+data/com.github.brainstormtrooper.cphotos.appdata.xml.in
+data/com.github.brainstormtrooper.cphotos.gschema.xml
+src/main.py
+src/window.py
+src/window.ui
