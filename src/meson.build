@@ -28,11 +28,16 @@ configure_file(
   install_dir: get_option('bindir')
 )
 
+subdir('remotes')
+
 cphotos_sources = [
   '__init__.py',
   'main.py',
   'window.py',
-  'cdata.py'
+  'cdata.py',
+  'local.py',
+  'db.py',
+  'dbus.py'
 ]
 
 install_data(cphotos_sources, install_dir: moduledir)

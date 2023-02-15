@@ -3,11 +3,14 @@ import json
 import os
 import requests
 import urllib
+import dbus
+from tinydb import TinyDB, Query
 from webdav3.client import Client
 from pydbus import SessionBus
 from pathlib import Path
 
 cachepath = os.path.join(os.path.expanduser("~"), ".cache/pelican")
+dbfile = f"{cachepath}/db.json"
 photospath = os.path.join(os.path.expanduser("~"), "Pictures")
 
 def getcacheloc(tn):
@@ -29,49 +32,6 @@ def getcache(tn):
         f = image.read()
         b = bytearray(f)
     return b
-
-def getBusData(obpath, returnable, args = [], kwargs = {}):
-    res = None
-    bus = SessionBus()
-
-    #org.freedesktop.DBus
-    #org.gnome.OnlineAccounts
-    remote_object = bus.get(
-        "org.gnome.OnlineAccounts", # Bus name
-        obpath # Object path
-    )
-
-    print(remote_object.Introspect())
-    res = remote_object.__getattribute__(returnable)(*args, **kwargs)
-    return res
-
-def getAccount(provider):
-    res = None
-    authdata = None
-    accts = getBusData("/org/gnome/OnlineAccounts", "GetManagedObjects")
-    for k in accts:
-        if ('org.gnome.OnlineAccounts.Account' in accts[k].keys() and accts[k]['org.gnome.OnlineAccounts.Account']['ProviderName'] == provider):
-            res = k
-    return res
-
-
-def getCreds(provider):
-    pk = getAccount(provider)
-    pinfo = getBusData(pk, "Introspect")
-    Id = getBusData(pk, 'Get', ['org.gnome.OnlineAccounts.Account', 'Id'])
-    usr = getBusData(pk, 'Get', ['org.gnome.OnlineAccounts.Account', 'Identity'])
-    pw = getBusData(pk, 'GetPassword', [Id])
-
-    return usr, pw
-
-def getToken(provider):
-    acct = getAccount(provider)
-    accto = getBusData(acct, 'GetAccessToken')
-    # print(accto)
-
-
-    # print(session.get('https://photoslibrary.googleapis.com/v1/mediaItems?pageSize=100').json())
-    return accto[0]
 
 
 def get100pics():
@@ -106,8 +66,8 @@ def get100pics():
             remotepath = f"{photosEndpoint}/{namepath}"
             testpath = getcacheloc(namepath)
             if not os.path.isfile(testpath):
-                # client.download_sync(remote_path=remotepath, local_path=testpath)
-                pass
+                client.download_sync(remote_path=remotepath, local_path=testpath)
+
     with os.scandir(photospath) as entries:
         for entry in entries:
             print(entry.name)
