@@ -1,13 +1,13 @@
-import dbus
+import bus
 
 """
 Creates an array of Remote objects with Photos enabled and containing authentication method
 """
 def listRemotes():
-    remotes = dbus.getPhotoAccounts()
+    remotes = bus.getPhotoAccounts()
     for remote in remotes:
-        pk = dbus.getAccount(remote)
-        ram = dbus.getAuthMethod(pk)
+        pk = bus.getAccount(remote)
+        ram = bus.getAuthMethod(pk)
 
     pass
 
@@ -23,3 +23,5 @@ def getRemotePic(remote, path):
 def putRemotePic(remote, path, content):
     pass
     
+def scanRemote():
+    remotes = listRemotes()

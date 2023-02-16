@@ -3,7 +3,8 @@ import json
 import os
 import requests
 import urllib
-import dbus
+import locald
+import remotes
 from tinydb import TinyDB, Query
 from webdav3.client import Client
 from pydbus import SessionBus
@@ -33,43 +34,18 @@ def getcache(tn):
         b = bytearray(f)
     return b
 
+def updatecache():
+    local.scanLocal()
+    remote.scanRemote()
 
 def get100pics():
 
-    t = getToken('Google')
-    nckey = getAccount('Nextcloud')
-    usr, pw = getCreds('Nextcloud')
-
-    ncfilesuri = getBusData(nckey, 'Get', ['org.gnome.OnlineAccounts.Files', 'Uri'])
-    photosEndpoint = '/Photos'
-    print(ncfilesuri)
-
-    options = {
-         'webdav_hostname': ncfilesuri.replace('davs://', 'https://'),
-         'webdav_login':    usr,
-         'webdav_password': pw,
-         'webdav_timeout': 60
-    }
-    client = Client(options)
-    # client.verify = False
-    # ncr = client.execute_request("list", 'directory_name')
-    ncr = client.list(photosEndpoint, get_info=True)
-    print(ncr)
+    # t = getToken('Google')
+    previewpath = f"{cachepath}/previews"
     tns = []
-    for rec in ncr:
-        if rec['isdir'] == False and 'image' in rec['content_type']:
-            # rectn = rec['etag'] if 'etag' in rec.keys() else urllib.parse.quote(rec['path'])
-            p = Path(rec['path'])
-            namepath = p.relative_to(f"/remote.php/webdav{photosEndpoint}")
-            print(namepath)
-            tns.append(namepath)
-            remotepath = f"{photosEndpoint}/{namepath}"
-            testpath = getcacheloc(namepath)
-            if not os.path.isfile(testpath):
-                client.download_sync(remote_path=remotepath, local_path=testpath)
-
-    with os.scandir(photospath) as entries:
+    with os.scandir(previewpath) as entries:
         for entry in entries:
+            tns.append(entry.name)
             print(entry.name)
 
     """
@@ -98,23 +74,4 @@ def get100pics():
 
     print(testres)
     """
-
-
-    with open('/home/rick/Downloads/birdietest.jpg', "rb") as image:
-        f = image.read()
-        b = bytearray(f)
-
-    endpoint = "https://photoslibrary.googleapis.com/v1/mediaItems?pageSize=100"
-    auth = f"Bearer {t}"
-    # print(auth)
-    myheaders = {
-        'Authorization': auth,
-        'Content-type': 'application/json'
-    }
-    body = { 'pageSize': '100' }
-
-    r = requests.request(method='get', url=endpoint, headers=myheaders)
-
-    print(r.text)
-
     return tns

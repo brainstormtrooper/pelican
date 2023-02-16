@@ -35,9 +35,10 @@ cphotos_sources = [
   'main.py',
   'window.py',
   'cdata.py',
-  'local.py',
-  'db.py',
-  'dbus.py'
+  'locald.py',
+  'remotes.py',
+  'dbase.py',
+  'bus.py'
 ]
 
 install_data(cphotos_sources, install_dir: moduledir)

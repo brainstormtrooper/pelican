@@ -46,7 +46,7 @@ class CphotosWindow(Adw.ApplicationWindow):
                 # label = Gtk.Label(label=text)
                 self.flow.append(picBox)
 
-
+        updatecache()
 
 
 
