@@ -4,6 +4,7 @@ def connect():
     pass
 
 def listDirs():
+    print('here')
     pass
 
 def listPics(fldr = None):

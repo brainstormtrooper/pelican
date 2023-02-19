@@ -3,8 +3,8 @@ import json
 import os
 import requests
 import urllib
-import locald
-import remotes
+from . import locals
+from . import remotes
 from tinydb import TinyDB, Query
 from webdav3.client import Client
 from pydbus import SessionBus
@@ -35,8 +35,8 @@ def getcache(tn):
     return b
 
 def updatecache():
-    local.scanLocal()
-    remote.scanRemote()
+    locals.scanLocal()
+    remotes.scanRemote()
 
 def get100pics():
 
