@@ -16,7 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-
 from gi.repository import Adw
 from gi.repository import Gtk, GLib, GdkPixbuf
 # from PIL import Image
@@ -46,6 +45,9 @@ class CphotosWindow(Adw.ApplicationWindow):
                 # label = Gtk.Label(label=text)
                 self.flow.append(picBox)
 
+    def update(self):
+        # https://docs.gtk.org/gtk3/method.Box.reorder_child.html
+        # https://hergert.me/blog/2008/11/13/gtask.html
         updatecache()
 
 

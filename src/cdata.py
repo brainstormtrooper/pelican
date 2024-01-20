@@ -1,18 +1,23 @@
 #cdata.py
 import json
 import os
-import requests
 import urllib
-from . import locals
-from . import remotes
-from tinydb import TinyDB, Query
+import hashlib
+import sqlite3
+import requests
+from .locals import local
+from .dbase import db
 from webdav3.client import Client
+from datetime import datetime
 from pydbus import SessionBus
 from pathlib import Path
+from PIL import Image, ExifTags, TiffImagePlugin
 
 cachepath = os.path.join(os.path.expanduser("~"), ".cache/pelican")
-dbfile = f"{cachepath}/db.json"
-photospath = os.path.join(os.path.expanduser("~"), "Pictures")
+
+# con = sqlite3.connect(f"{cachepath}/pelican.db")
+db3 = db(cachepath)
+photospath = os.path.join(os.path.expanduser("~"), "Pictures/Photos")
 
 def getcacheloc(tn):
     previewpath = f"{cachepath}/previews"
@@ -34,12 +39,82 @@ def getcache(tn):
         b = bytearray(f)
     return b
 
+def safeType(v):
+    try:
+        v = v.decode()
+    except (UnicodeDecodeError, AttributeError):
+        if type(v) is TiffImagePlugin.IFDRational:
+            v = int(v)
+    if type(v) is tuple:
+        v = [float(i) for i in v]
+    return v
+
+
+def getlocation(lat, lon):
+    locurl = f"https://nominatim.openstreetmap.org/reverse?format=geocodejson&lat={lat}&lon={lon}"
+    rloc = requests.get(locurl)
+    locob = json.loads(rloc.text)
+    print(locob)
+    town = locob['features'][0]['properties']['geocoding']['city']
+    state = locob['features'][0]['properties']['geocoding']['state']
+    country = locob['features'][0]['properties']['geocoding']['country']
+
+    return town, state, country
+
+def updatephrase(photo_id, words):
+    curphrase = db3.getphrase(photo_id)
+    print(curphrase)
+    curwords = curphrase.split(' ') if curphrase != '' else []
+    newwords = list(set(curwords + words))
+    newphrase = ' '.join(newwords)
+    res = db3.updatephrase(photo_id, newphrase)
+
+    return res
+
+
 def updatecache():
-    locals.scanLocal()
-    remotes.scanRemote()
+    onlyfiles = [f for f in os.listdir(photospath) if os.path.isfile(os.path.join(photospath, f))]
+    print(onlyfiles)
+    # saved = Query()
+    for file in onlyfiles:
+        # exists = db.search(saved.fileName == file)
+        exists = db3.isphotoname(file)
+        if not exists:
+            print('new')
+            newfile = local(photospath, file)
+            
+            # https://overpass-api.de/api/interpreter?data=[out:json];node[place~"^(village|town|city)$"](around:2500,44.05985555555556,5.130152777777778);out;
+            # place~"^(village|town|city)$"
+            # https://nominatim.openstreetmap.org/lookup?osm_ids=N26695231&format=json
+            lat, lon, alt, direction = newfile.getCoordinates()
+            
+            rec = (
+                file, 
+                os.path.join(photospath, file), 
+                newfile.getFileHash(), 
+                newfile.getCreatedDate(), 
+                newfile.getModel(), 
+                lat, 
+                lon, 
+                alt, 
+                direction
+            )
+            newid = db3.insertphoto(rec)
+            words = [file, newfile.getCreatedDate(), newfile.getModel()]
+            updatephrase(newid, words)
+            # iid = db.insert(newEntry)
+            img = newfile.getThumbnail()
+            img.save(f"{cachepath}/previews/{newid}", 'jpeg')
+            
+            town, state, country = getlocation(lat, lon)
+            ct = db3.addlocationtophoto(newid, town, state, country)
+            words = [town, state, country]
+            updatephrase(newid, words)
+            exit()
 
 def get100pics():
-
+    now = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S%z')
+    picsrows = db3.getpicspage('down', now, 100)
     # t = getToken('Google')
     previewpath = f"{cachepath}/previews"
     tns = []
