@@ -5,8 +5,10 @@ import urllib
 import hashlib
 import sqlite3
 import requests
+from . import pager
 from .locals import local
 from .dbase import db
+from .previews import preview
 from webdav3.client import Client
 from datetime import datetime
 from pydbus import SessionBus
@@ -16,8 +18,13 @@ from PIL import Image, ExifTags, TiffImagePlugin
 cachepath = os.path.join(os.path.expanduser("~"), ".cache/pelican")
 
 # con = sqlite3.connect(f"{cachepath}/pelican.db")
-db3 = db(cachepath)
+
 photospath = os.path.join(os.path.expanduser("~"), "Pictures/Photos")
+
+def initdb():
+    db3 = db(cachepath)
+    if not db3.isInit():
+        db3.initdb()
 
 def getcacheloc(tn):
     previewpath = f"{cachepath}/previews"
@@ -39,16 +46,8 @@ def getcache(tn):
         b = bytearray(f)
     return b
 
-def safeType(v):
-    try:
-        v = v.decode()
-    except (UnicodeDecodeError, AttributeError):
-        if type(v) is TiffImagePlugin.IFDRational:
-            v = int(v)
-    if type(v) is tuple:
-        v = [float(i) for i in v]
-    return v
-
+def addpreview():
+    pass
 
 def getlocation(lat, lon):
     locurl = f"https://nominatim.openstreetmap.org/reverse?format=geocodejson&lat={lat}&lon={lon}"
@@ -62,6 +61,7 @@ def getlocation(lat, lon):
     return town, state, country
 
 def updatephrase(photo_id, words):
+    db3 = db(cachepath)
     curphrase = db3.getphrase(photo_id)
     print(curphrase)
     curwords = curphrase.split(' ') if curphrase != '' else []
@@ -73,6 +73,7 @@ def updatephrase(photo_id, words):
 
 
 def updatecache():
+    db3 = db(cachepath)
     onlyfiles = [f for f in os.listdir(photospath) if os.path.isfile(os.path.join(photospath, f))]
     print(onlyfiles)
     # saved = Query()
@@ -90,7 +91,7 @@ def updatecache():
             
             rec = (
                 file, 
-                os.path.join(photospath, file), 
+                photospath,
                 newfile.getFileHash(), 
                 newfile.getCreatedDate(), 
                 newfile.getModel(), 
@@ -105,48 +106,34 @@ def updatecache():
             # iid = db.insert(newEntry)
             img = newfile.getThumbnail()
             img.save(f"{cachepath}/previews/{newid}", 'jpeg')
-            
-            town, state, country = getlocation(lat, lon)
-            ct = db3.addlocationtophoto(newid, town, state, country)
-            words = [town, state, country]
-            updatephrase(newid, words)
-            exit()
+            if lat and lon:
+                town, state, country = getlocation(lat, lon)
+                ct = db3.addlocationtophoto(newid, town, state, country)
+                words = [town, state, country]
+                updatephrase(newid, words)
+    
 
-def get100pics():
-    now = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S%z')
-    picsrows = db3.getpicspage('down', now, 100)
+
+def get100pics(pagelist, direction = 'down', datelimit = None, qty = 100):
+    # https://stackoverflow.com/questions/64661336/return-value-in-a-python-thread
+    db3 = db(cachepath)
+    if None == datelimit:
+        datelimit = datetime.utcnow().isoformat()
+    picsrows = db3.getpicspage(direction, datelimit, qty)
     # t = getToken('Google')
-    previewpath = f"{cachepath}/previews"
-    tns = []
-    with os.scandir(previewpath) as entries:
-        for entry in entries:
-            tns.append(entry.name)
-            print(entry.name)
+    previewspath = f"{cachepath}/previews"
+    for pic in picsrows:
+        filename = pic[1]
+        photospath = pic[2]
+        print(photospath, filename)
+        realpic = local(photospath, filename)
+        if realpic.getExists():
+            Preview = preview(pic[0], pic[1], pic[2], pic[3], cachepath)
+            if Preview.exists:
+                print('exists')
+                pagelist.append(Preview)
+    
 
-    """
-    testphotopath = ncr[1]['path']
-    dlres = client.download_sync(remote_path='/Photos/Birdie.jpg', local_path='/home/rick/Downloads/birdietest.jpg')
-    print(dlres)
 
-    thumbprop = client.get_property(f"{photosEndpoint}/Birdie.jpg", { 'namespace': 'http://nextcloud.org/ns', 'name': 'has-preview'})
-    print(thumbprop)
-
-    testthumb = f"preview.png?file={urllib.parse.quote('/Photos/Birdie.jpg')}&x=250&y=250http&a=1&mode=cover&forceIcon=0"
-    testthumburibase = 'https://cloud2.rickopper.com/index.php/core/'
-    options = {
-         'webdav_hostname': testthumburibase,
-         'webdav_login':    usr,
-         'webdav_password': pw,
-         'webdav_timeout': 60,
-         'webdav_override_methods': {
-            'info': 'HEAD'
-        }
-    }
-    thumbclient = Client(options)
-
-    # testres = requests.get(testthumb, stream=True).text
-    testres = thumbclient.download_sync(remote_path=testthumb, local_path='~/Downloads/birdiethumb.jpg')
-
-    print(testres)
-    """
-    return tns
+def getblocks():
+    pass

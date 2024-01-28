@@ -9,13 +9,13 @@ import uuid
 
 class db:
 
+    schema_version = 1
+
     def __init__(self, cachepath):
         db = f"{cachepath}/pelican.db"
         self.con = sqlite3.connect(db)
         self.con.set_trace_callback(print)
-        self.schema_version = 1
-        if not self.isInit():
-            self.initdb()
+        
 
     def isInit(self):
         cur = self.con.cursor()
@@ -27,16 +27,21 @@ class db:
 
     def initdb(self):
         cur = self.con.cursor()
-        cur.execute("CREATE TABLE photos(id, filename, filepath, hash, takendate, device, lat, lon, alt, dir, town, state, country, notes, flag, lastopen, opencount)")
-        cur.execute("CREATE INDEX name_index ON photos(filename)")
-        cur.execute("CREATE INDEX id_index ON photos(id)")
-        cur.execute("CREATE TABLE collections(id, name, notes, auto)")
-        cur.execute("CREATE TABLE members(photo_id, collection_id)")
-        cur.execute("CREATE TABLE phrases(photo_id, phrase)")
-        cur.execute("CREATE INDEX phrase_index ON phrases(phrase)")
-        cur.execute("CREATE TABLE version(schema_version)")
-        cur.execute(f"INSERT INTO version VALUES ({self.schema_version})")
-        self.con.commit()
+        try:
+            cur.execute("CREATE TABLE photos(id, filename, filepath, hash, takendate, device, lat, lon, alt, dir, town, state, country, notes, flag, lastopen, opencount)")
+            cur.execute("CREATE INDEX name_index ON photos(filename)")
+            cur.execute("CREATE INDEX id_index ON photos(id)")
+            cur.execute("CREATE INDEX date_index ON photos(takendate)")
+            cur.execute("CREATE TABLE collections(id, name, notes, auto)")
+            cur.execute("CREATE TABLE members(photo_id, collection_id)")
+            cur.execute("CREATE TABLE phrases(photo_id, phrase)")
+            cur.execute("CREATE INDEX phrase_index ON phrases(phrase)")
+            cur.execute("CREATE TABLE version(schema_version)")
+            cur.execute(f"INSERT INTO version VALUES ({self.schema_version})")
+            self.con.commit()
+        except Exception as e:
+            print(e)
+
         cur.close()
 
     def isphotoname(self, name):
@@ -101,8 +106,12 @@ class db:
 
     def getpicspage(self, direction, startdate, limit):
         cur = self.con.cursor()
-        dircond = 'GTE' if direction == 'down' else 'LTE'
-        stmt = f"SELECT id, filepath, takendate FROM photos WHERE takendate {dircond} ? LIMIT ?"
-        rows = cur.execute(stmt, (startdate, limit)).fetchrows()
+        dircond = '<' if direction == 'down' else '>'
+        stmt = f"SELECT id, filename, filepath, takendate FROM photos WHERE takendate {dircond} ? ORDER BY takendate DESC LIMIT ?"
+        rows = []
+        for row in cur.execute(stmt, (startdate, limit)):
+            rows.append(row)
         print(rows)
         cur.close()
+
+        return rows

@@ -48,45 +48,50 @@ class local:
     
     def doExtractExif(self):
         img = Image.open(self.filepath)
-
-        self.exif = { ExifTags.TAGS[k]: self.safeType(v) for k, v in img._getexif().items() if k in ExifTags.TAGS }
-        gpsinfo = {}
-        for key in self.exif['GPSInfo'].keys():
-            decode = ExifTags.GPSTAGS.get(key,key)
-            v = self.safeType(self.exif['GPSInfo'][key])
-            gpsinfo[decode] = v
-        self.exif['GPSInfo'] = gpsinfo
+        exifitems = img._getexif()
+        if exifitems:
+            self.exif = { ExifTags.TAGS[k]: self.safeType(v) for k, v in exifitems.items() if k in ExifTags.TAGS }
+            gpsinfo = {}
+            if 'GPSInfo' in self.exif:
+                for key in self.exif['GPSInfo'].keys():
+                    decode = ExifTags.GPSTAGS.get(key,key)
+                    v = self.safeType(self.exif['GPSInfo'][key])
+                    gpsinfo[decode] = v
+                self.exif['GPSInfo'] = gpsinfo
 
     def doCreatedDate(self):
         if self.exists:
             dt = datetime.fromtimestamp(os.path.getmtime(self.filepath), timezone.utc)
+            
             if self.exif and 'DateTime' in self.exif:
+                sub = self.exif['SubsecTime'] + '000' if 'SubsecTime' in self.exif else '000000'
                 offset = self.exif['OffsetTime'].replace(':', '') if 'OffsetTime' in self.exif else '+0000'
-                dt = datetime.strptime(self.exif['DateTime'] + offset, '%Y:%m:%d %H:%M:%S%z')
+                dt = datetime.strptime(f"{self.exif['DateTime']}.{sub}{offset}", '%Y:%m:%d %H:%M:%S.%f%z')
 
-            self.createdDate = dt.strftime('%Y-%m-%dT%H:%M:%S%z')
+            self.createdDate = dt.isoformat(timespec='microseconds')
 
     def doExtractCoords(self):
-        gpsinfo = self.exif['GPSInfo']
-        lat = None
-        lon = None
-        alt = None
-        direction = None
-        try:
-            alt = gpsinfo['GPSAltitude']
-            direction = gpsinfo['GPSImgDirection']
-            lat = float(gpsinfo['GPSLatitude'][0] + (gpsinfo['GPSLatitude'][1]/60) + (gpsinfo['GPSLatitude'][2]/3600))
-            lon = float(gpsinfo['GPSLongitude'][0] + (gpsinfo['GPSLongitude'][1]/60) + (gpsinfo['GPSLongitude'][2]/3600))
-            if gpsinfo['GPSLatitudeRef'] != 'N':
-                lat = -lat
-            if gpsinfo['GPSLongitudeRef'] != 'E':
-                lon = -lon
-        except Exception as e:
-            print(e)
-        self.alt = alt
-        self.dir = direction
-        self.lat = lat
-        self.lon = lon
+        if self.exif and 'GPSInfo' in self.exif:
+            gpsinfo = self.exif['GPSInfo']
+            lat = None
+            lon = None
+            alt = None
+            direction = None
+            try:
+                alt = gpsinfo['GPSAltitude']
+                direction = gpsinfo['GPSImgDirection']
+                lat = float(gpsinfo['GPSLatitude'][0] + (gpsinfo['GPSLatitude'][1]/60) + (gpsinfo['GPSLatitude'][2]/3600))
+                lon = float(gpsinfo['GPSLongitude'][0] + (gpsinfo['GPSLongitude'][1]/60) + (gpsinfo['GPSLongitude'][2]/3600))
+                if gpsinfo['GPSLatitudeRef'] != 'N':
+                    lat = -lat
+                if gpsinfo['GPSLongitudeRef'] != 'E':
+                    lon = -lon
+            except Exception as e:
+                print(e)
+            self.alt = alt
+            self.dir = direction
+            self.lat = lat
+            self.lon = lon
 
     def doExtractModel(self):
         pass 

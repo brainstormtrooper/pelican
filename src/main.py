@@ -47,7 +47,7 @@ class CphotosApplication(Adw.Application):
         if not win:
             win = CphotosWindow(application=self)
         win.present()
-        win.update()
+        
 
     def on_about_action(self, widget, _):
         """Callback for the app.about action."""

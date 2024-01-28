@@ -40,7 +40,10 @@ cphotos_sources = [
   'window.py',
   'cdata.py',
   'locals.py',
-  'dbase.py'
+  'dbase.py',
+  'dates.py',
+  'pager.py',
+  'previews.py'
 ]
 
 install_data(cphotos_sources, install_dir: moduledir)
