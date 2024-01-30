@@ -24,12 +24,10 @@
         <property name="hscrollbar-policy">never</property>
         <property name="vexpand">True</property>
         <child>
-          <object class="GtkFlowBox" id="flow">
-            <property name="column-spacing">6</property>
-            <property name="max-children-per-line">100</property>
-            <property name="row-spacing">6</property>
-            <property name="selection-mode">browse</property>
-
+          <object class="GtkBox" id="scrollpage">
+            <property name="orientation">vertical</property>
+            <property name="vexpand">true</property>
+            <property name="hexpand">true</property>
           </object>
         </child>
       </object>
@@ -61,4 +59,3 @@
     </section>
   </menu>
 </interface>
-

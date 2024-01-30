@@ -21,6 +21,9 @@ cachepath = os.path.join(os.path.expanduser("~"), ".cache/pelican")
 
 photospath = os.path.join(os.path.expanduser("~"), "Pictures/Photos")
 
+datetimerange = [None, None]
+proclock = False
+
 def initdb():
     db3 = db(cachepath)
     if not db3.isInit():
