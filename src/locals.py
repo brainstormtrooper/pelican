@@ -64,7 +64,9 @@ class local:
             dt = datetime.fromtimestamp(os.path.getmtime(self.filepath), timezone.utc)
             
             if self.exif and 'DateTime' in self.exif:
-                sub = self.exif['SubsecTime'] + '000' if 'SubsecTime' in self.exif else '000000'
+                sub = self.exif['SubsecTime'] if 'SubsecTime' in self.exif else '000000'
+                if len(sub) == 3:
+                    sub = sub + '000'
                 offset = self.exif['OffsetTime'].replace(':', '') if 'OffsetTime' in self.exif else '+0000'
                 dt = datetime.strptime(f"{self.exif['DateTime']}.{sub}{offset}", '%Y:%m:%d %H:%M:%S.%f%z')
 

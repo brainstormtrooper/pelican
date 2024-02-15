@@ -22,6 +22,7 @@ cachepath = os.path.join(os.path.expanduser("~"), ".cache/pelican")
 photospath = os.path.join(os.path.expanduser("~"), "Pictures/Photos")
 
 datetimerange = [None, None]
+pages = []
 proclock = False
 
 def initdb():
@@ -120,6 +121,7 @@ def updatecache():
 def get100pics(pagelist, direction = 'down', datelimit = None, qty = 100):
     # https://stackoverflow.com/questions/64661336/return-value-in-a-python-thread
     db3 = db(cachepath)
+    picsrows = []
     if None == datelimit:
         datelimit = datetime.utcnow().isoformat()
     picsrows = db3.getpicspage(direction, datelimit, qty)

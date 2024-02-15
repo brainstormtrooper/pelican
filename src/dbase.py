@@ -107,7 +107,8 @@ class db:
     def getpicspage(self, direction, startdate, limit):
         cur = self.con.cursor()
         dircond = '<' if direction == 'down' else '>'
-        stmt = f"SELECT id, filename, filepath, takendate FROM photos WHERE takendate {dircond} ? ORDER BY takendate DESC LIMIT ?"
+        sortd = 'DESC' if direction == 'down' else 'ASC'
+        stmt = f"SELECT id, filename, filepath, takendate FROM photos WHERE takendate {dircond} ? ORDER BY takendate {sortd} LIMIT ?"
         rows = []
         for row in cur.execute(stmt, (startdate, limit)):
             rows.append(row)

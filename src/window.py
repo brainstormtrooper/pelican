@@ -53,31 +53,36 @@ class CphotosWindow(Adw.ApplicationWindow):
             dvs = 0.1
         prct = (e.props.value / (dvs)) * 100
         if e.props.value > self.scrolld:
-            if prct >= 75 and len(self.pages) < 3 and not cdata.proclock:
+            if prct >= 90 and len(cdata.pages) < 3:
                 thispage = CphotosPage()
-                thispage.fillbox('down', 5)
-                self.scrollpage.append(thispage)
-                self.pages.append('bob')
-                if len(self.pages) == 3:
-                    self.scrollpage.remove(self.scrollpage.get_first_child())
-                    del self.pages[0]
+                ct = thispage.fillbox('down', 10)
+                if ct:
+                    self.scrollpage.append(thispage)
+                    cdata.pages.append(cdata.datetimerange)
+                    if len(cdata.pages) == 3:
+                        print('>>> removing a top page')
+                        self.scrollpage.remove(self.scrollpage.get_first_child())
+                        del cdata.pages[0]
+                    
+                    
                 
         if e.props.value < self.scrolld:
-            if prct <= 25 and len(self.pages) < 3 and not cdata.proclock:
+            if prct <= 10 and len(cdata.pages) < 3:
                 thispage = CphotosPage()
-                thispage.fillbox('up', 5)
-                self.scrollpage.prepend(thispage)
-                self.pages.insert(0, 'bob')
-                if len(self.pages) == 3:
-                    self.scrollpage.remove(self.scrollpage.get_last_child())
-                    del self.pages[-1]
+                ct = thispage.fillbox('up', 10)
+                if ct:
+                    self.scrollpage.prepend(thispage)
+                    cdata.pages.insert(0, cdata.datetimerange)
+                    if len(cdata.pages) == 3:
+                        print('>>> removing a bottom page')
+                        self.scrollpage.remove(self.scrollpage.get_last_child())
+                        vadj = self.scroll.get_child().get_vadjustment()
+                        vadj.set_value(0.3*(vadj.get_upper() - vadj.get_page_size()))
+                        del cdata.pages[-1]
                 
         self.scrolld = e.props.value
         
-    def pageblock(self):
-        
 
-        pass
 
     def isdate(self, datetime):
         return 'T'.split(datetime)[0] in self.dates
@@ -98,7 +103,8 @@ class CphotosWindow(Adw.ApplicationWindow):
         # self.scroll.connect('scroll-event', self.scroll_notify_event)
         self.doindex()
         thispage = CphotosPage()
-        thispage.fillbox('down', 5)
+        thispage.fillbox('down', 10)
         self.scrollpage.append(thispage)
+        cdata.pages.append(cdata.datetimerange)
         
         
