@@ -2,6 +2,7 @@
 <interface>
   <requires lib="gtk" version="4.0"/>
   <template class="CphotosDate" parent="GtkBox">
+    <property name="orientation">vertical</property>
     <property name="hexpand">true</property>
     <property name="vexpand">true</property>
     <child>
@@ -25,9 +26,9 @@
             <property name="max-children-per-line">100</property>
             <property name="row-spacing">6</property>
             <property name="selection-mode">browse</property>
-
+            <property name="hexpand">true</property>
+            <property name="vexpand">true</property>
         </object>
     </child>
   </template>
 </interface>
-

@@ -12,11 +12,19 @@ class dateBlock(Gtk.Box):
     def __init__(self, date, **kwargs):
         super().__init__(**kwargs)
         self.date = date
-
+        self.places = []
     
-    def additem(self, item):
-        pass
-
+    def additems(self, items):
+        for tn in items:
+            self.doPlaces(tn)
+            self.flow.append(tn.getwidget())
+        placeslabeltext = ', '.join(list(set([w for w in self.places if None != w])))
+        dateloc = f"{self.date} at {placeslabeltext}"
+        self.dateLabel.set_text(dateloc)
     
-    
+    def doPlaces(self, item):
+        # list(set(curwords + [w for w in words if None != w]))
+        self.places.append(item.placename)
+        self.places.append(item.town)
+        
     

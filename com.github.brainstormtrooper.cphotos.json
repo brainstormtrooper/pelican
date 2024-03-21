@@ -10,7 +10,7 @@
         "--socket=fallback-x11",
         "--device=dri",
         "--socket=wayland",
-        "--talk-name=org.gnome.OnlineAccounts"
+        "--talk-name=org.freedesktop.Tracker3.Miner.Files"
     ],
     "cleanup" : [
         "/include",

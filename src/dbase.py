@@ -28,7 +28,7 @@ class db:
     def initdb(self):
         cur = self.con.cursor()
         try:
-            cur.execute("CREATE TABLE photos(id, filename, filepath, hash, takendate, device, lat, lon, alt, dir, town, state, country, notes, flag, lastopen, opencount)")
+            cur.execute("CREATE TABLE photos(id, filename, filepath, hash, takendate, device, lat, lon, alt, dir, name, town, state, country, notes, flag, lastopen, opencount, thumbnail)")
             cur.execute("CREATE INDEX name_index ON photos(filename)")
             cur.execute("CREATE INDEX id_index ON photos(id)")
             cur.execute("CREATE INDEX date_index ON photos(takendate)")
@@ -47,8 +47,8 @@ class db:
     def isphotoname(self, name):
         res = False
         cur = self.con.cursor()
-        stmt = f"SELECT id FROM photos WHERE filename = '{name}' LIMIT 1;"
-        row = cur.execute(stmt).fetchone()
+        stmt = f"SELECT id FROM photos WHERE filename = ? LIMIT 1;"
+        row = cur.execute(stmt, (name,)).fetchone()
         if row:
             res = True
 
@@ -61,8 +61,8 @@ class db:
         # vals = [f"'{v}'" for v in values]
         vals = (phid, *values)
         stmt = """
-        INSERT INTO photos (id, filename, filepath, hash, takendate, device, lat, lon, alt, dir)
-        VALUES (?,?,?,?,?,?,?,?,?,?)
+        INSERT INTO photos (id, filename, filepath, hash, takendate, device, lat, lon, alt, dir, thumbnail)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?)
         """
         cur.execute(stmt, vals)
         self.con.commit()
@@ -70,11 +70,11 @@ class db:
 
         return phid
 
-    def addlocationtophoto(self, id, town, state, country):
+    def addlocationtophoto(self, id, name, town, state, country):
         res = 0
         cur = self.con.cursor()
-        stmt = "UPDATE photos SET town = ?, state = ?, country = ? WHERE id = ?"
-        cur.execute(stmt, (town, state, country, id))
+        stmt = "UPDATE photos SET name = ?, town = ?, state = ?, country = ? WHERE id = ?"
+        cur.execute(stmt, (name, town, state, country, id))
         res = cur.rowcount
         self.con.commit()
         cur.close()
@@ -108,7 +108,7 @@ class db:
         cur = self.con.cursor()
         dircond = '<' if direction == 'down' else '>'
         sortd = 'DESC' if direction == 'down' else 'ASC'
-        stmt = f"SELECT id, filename, filepath, takendate FROM photos WHERE takendate {dircond} ? ORDER BY takendate {sortd} LIMIT ?"
+        stmt = f"SELECT id, filename, filepath, takendate, thumbnail, name, town FROM photos WHERE takendate {dircond} ? ORDER BY takendate {sortd} LIMIT ?"
         rows = []
         for row in cur.execute(stmt, (startdate, limit)):
             rows.append(row)

@@ -1,5 +1,7 @@
 import os
+import io
 import hashlib
+import math
 from PIL import Image, ExifTags, TiffImagePlugin
 from datetime import datetime, timezone
 
@@ -7,6 +9,7 @@ from datetime import datetime, timezone
 class local:
 
     def __init__(self, photospath, filename):
+        self.filename = filename
         self.exists = False
         self.filepath = None
         self.filehash = None
@@ -73,26 +76,28 @@ class local:
             self.createdDate = dt.isoformat(timespec='microseconds')
 
     def doExtractCoords(self):
-        if self.exif and 'GPSInfo' in self.exif:
+        if self.exif and 'GPSInfo' in self.exif and self.exif['GPSInfo']:
             gpsinfo = self.exif['GPSInfo']
             lat = None
             lon = None
             alt = None
             direction = None
             try:
-                alt = gpsinfo['GPSAltitude']
-                direction = gpsinfo['GPSImgDirection']
-                lat = float(gpsinfo['GPSLatitude'][0] + (gpsinfo['GPSLatitude'][1]/60) + (gpsinfo['GPSLatitude'][2]/3600))
-                lon = float(gpsinfo['GPSLongitude'][0] + (gpsinfo['GPSLongitude'][1]/60) + (gpsinfo['GPSLongitude'][2]/3600))
-                if gpsinfo['GPSLatitudeRef'] != 'N':
-                    lat = -lat
-                if gpsinfo['GPSLongitudeRef'] != 'E':
-                    lon = -lon
+                alt = int(gpsinfo['GPSAltitude'])
+                direction = int(gpsinfo['GPSImgDirection'])
+                if type(gpsinfo['GPSLatitude'][0]) in [int, float]:
+                    
+                    lat = float(gpsinfo['GPSLatitude'][0] + (gpsinfo['GPSLatitude'][1]/60) + (gpsinfo['GPSLatitude'][2]/3600))
+                    lon = float(gpsinfo['GPSLongitude'][0] + (gpsinfo['GPSLongitude'][1]/60) + (gpsinfo['GPSLongitude'][2]/3600))
+                    if gpsinfo['GPSLatitudeRef'] != 'N':
+                        lat = -lat
+                    if gpsinfo['GPSLongitudeRef'] != 'E':
+                        lon = -lon
             except Exception as e:
                 print(e)
             self.alt = alt
             self.dir = direction
-            self.lat = lat
+            self.lat = lat 
             self.lon = lon
 
     def doExtractModel(self):
@@ -103,7 +108,9 @@ class local:
         if self.exists:
             img = Image.open(self.filepath)
             img.thumbnail((250, 250))
-            res = img
+            imgba = io.BytesIO()
+            img.save(imgba, format='webp')
+            res = imgba.getvalue()
         return res
     
     def getCreatedDate(self):
@@ -129,7 +136,11 @@ class local:
             v = v.decode()
         except (UnicodeDecodeError, AttributeError):
             if type(v) is TiffImagePlugin.IFDRational:
-                v = int(v)
+                # v = int(v)
+                try:
+                    v = v._numerator / v._denominator
+                except Exception:
+                    v = None
         if type(v) is tuple:
             v = [float(i) for i in v]
         return v

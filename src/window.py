@@ -34,6 +34,8 @@ class CphotosWindow(Adw.ApplicationWindow):
     pages = []
     topdatetime = None
     bottomdatetime = None
+    ignorescrolldown = False
+    ignorescrollup = False
     
     
 
@@ -50,35 +52,43 @@ class CphotosWindow(Adw.ApplicationWindow):
     def scroll_notify_event(w, e, self):
         dvs = e.props.upper - e.props.page_size
         if dvs == 0:
-            dvs = 0.1
+            dvs = 1
         prct = (e.props.value / (dvs)) * 100
         if e.props.value > self.scrolld:
-            if prct >= 90 and len(cdata.pages) < 3:
+            self.ignorescrollup = False
+            if prct >= 90 and len(cdata.pages) < 3 and not self.ignorescrolldown:
                 thispage = CphotosPage()
-                ct = thispage.fillbox('down', 10)
+                ct = thispage.fillbox('down', 50)
                 if ct:
                     self.scrollpage.append(thispage)
                     cdata.pages.append(cdata.datetimerange)
                     if len(cdata.pages) == 3:
                         print('>>> removing a top page')
-                        self.scrollpage.remove(self.scrollpage.get_first_child())
+                        # self.scrollpage.remove(self.scrollpage.get_first_child())
+                        # vadj = self.scroll.get_child().get_vadjustment()
+                        # vadj.set_value(0.5*(vadj.get_upper() - vadj.get_page_size()))
                         del cdata.pages[0]
+                else:
+                    self.ignorescrolldown = True
                     
                     
                 
         if e.props.value < self.scrolld:
-            if prct <= 10 and len(cdata.pages) < 3:
+            self.ignorescrolldown = False
+            if prct <= 10 and len(cdata.pages) < 3 and not self.ignorescrollup:
                 thispage = CphotosPage()
-                ct = thispage.fillbox('up', 10)
+                ct = thispage.fillbox('up', 50)
                 if ct:
                     self.scrollpage.prepend(thispage)
                     cdata.pages.insert(0, cdata.datetimerange)
                     if len(cdata.pages) == 3:
                         print('>>> removing a bottom page')
-                        self.scrollpage.remove(self.scrollpage.get_last_child())
-                        vadj = self.scroll.get_child().get_vadjustment()
-                        vadj.set_value(0.3*(vadj.get_upper() - vadj.get_page_size()))
+                        # self.scrollpage.remove(self.scrollpage.get_last_child())
+                        # vadj = self.scroll.get_child().get_vadjustment()
+                        # vadj.set_value(0.5*(vadj.get_upper() - vadj.get_page_size()))
                         del cdata.pages[-1]
+                else:
+                    self.ignorescrollup = True
                 
         self.scrolld = e.props.value
         
@@ -103,7 +113,7 @@ class CphotosWindow(Adw.ApplicationWindow):
         # self.scroll.connect('scroll-event', self.scroll_notify_event)
         self.doindex()
         thispage = CphotosPage()
-        thispage.fillbox('down', 10)
+        thispage.fillbox('down', 50)
         self.scrollpage.append(thispage)
         cdata.pages.append(cdata.datetimerange)
         
