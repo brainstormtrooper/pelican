@@ -9,20 +9,20 @@ from gi.repository import Gtk, GLib, Gio, GdkPixbuf
 
 class preview:
 
-    def __init__(self, id, filename, filepath, takendate, name, town):
-        # id, filename, filepath, takendate, cachepath
+    def __init__(self, rec):
+        # id, filename, filepath, takendate, name, town
         
-        self.id = id
+        self.id = rec[0]
         # self.thumbnailbytes = thumbnail
-        self.filepath = filepath
+        self.filepath = rec[2]
         # self.previewpath = os.path.join(cachepath, 'previews', id)
         
-        self.filename = filename
+        self.filename = rec[1]
         self.exists = os.path.isfile(os.path.join(self.filepath, self.filename))
-        self.takendate = takendate
+        self.takendate = rec[3]
         self.timestamp = datetime.strptime(self.takendate, '%Y-%m-%dT%H:%M:%S.%f%z').timestamp()
-        self.placename = name
-        self.town = town
+        self.placename = rec[4]
+        self.town = rec[5]
 
     
     def getwidget(self):
