@@ -28,7 +28,7 @@ class db:
     def initdb(self):
         cur = self.con.cursor()
         try:
-            cur.execute("CREATE TABLE photos(id, filename, filepath, hash, takendate, device, lat, lon, alt, dir, name, town, state, country, notes, flag, lastopen, opencount, thumbnail)")
+            cur.execute("CREATE TABLE photos(id, filename, filepath, hash, takendate, device, lat, lon, alt, dir, name, town, state, country, notes, flag, lastopen, opencount)")
             cur.execute("CREATE INDEX name_index ON photos(filename)")
             cur.execute("CREATE INDEX id_index ON photos(id)")
             cur.execute("CREATE INDEX date_index ON photos(takendate)")
@@ -61,8 +61,8 @@ class db:
         # vals = [f"'{v}'" for v in values]
         vals = (phid, *values)
         stmt = """
-        INSERT INTO photos (id, filename, filepath, hash, takendate, device, lat, lon, alt, dir, thumbnail)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?)
+        INSERT INTO photos (id, filename, filepath, hash, takendate, device, lat, lon, alt, dir)
+        VALUES (?,?,?,?,?,?,?,?,?,?)
         """
         cur.execute(stmt, vals)
         self.con.commit()
@@ -108,7 +108,7 @@ class db:
         cur = self.con.cursor()
         dircond = '<' if direction == 'down' else '>'
         sortd = 'DESC' if direction == 'down' else 'ASC'
-        stmt = f"SELECT id, filename, filepath, takendate, thumbnail, name, town FROM photos WHERE takendate {dircond} ? ORDER BY takendate {sortd} LIMIT ?"
+        stmt = f"SELECT id, filename, filepath, takendate, name, town FROM photos WHERE takendate {dircond} ? ORDER BY takendate {sortd} LIMIT ?"
         rows = []
         for row in cur.execute(stmt, (startdate, limit)):
             rows.append(row)
