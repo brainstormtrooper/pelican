@@ -17,7 +17,9 @@ class dateBlock(Gtk.Box):
     def additems(self, items):
         for tn in items:
             self.doPlaces(tn)
-            self.flow.append(tn.getwidget())
+            widget = tn.getwidget()
+            if widget:
+                self.flow.append(widget)
         placeslabeltext = ', '.join(list(set([w for w in self.places if None != w])))
         dateloc = f"{self.date} at {placeslabeltext}"
         self.dateLabel.set_text(dateloc)

@@ -128,7 +128,7 @@ def updatecache():
                     # place~"^(village|town|city)$"
                     # https://nominatim.openstreetmap.org/lookup?osm_ids=N26695231&format=json
                     lat, lon, alt, direction = newfile.getCoordinates()
-                    thumbbytes = newfile.getThumbnail()
+                    # thumbbytes = newfile.getThumbnail()
                     rec = (
                         file, 
                         photospath,
@@ -138,8 +138,7 @@ def updatecache():
                         lat, 
                         lon, 
                         alt, 
-                        direction,
-                        thumbbytes
+                        direction
                     )
                     newid = db3.insertphoto(rec)
                     words = [file, newfile.getCreatedDate(), newfile.getModel()]
@@ -187,7 +186,7 @@ def get100pics(pagelist, direction = 'down', datelimit = None, qty = 100):
         print(photospath, filename)
         realpic = local(photospath, filename)
         if realpic.getExists():
-            Preview = preview(pic[0], pic[1], pic[2], pic[3], pic[4], pic[5], pic[6])
+            Preview = preview(pic[0], pic[1], pic[2], pic[3], pic[4], pic[5])
             pagelist.append(Preview)
                 
     
