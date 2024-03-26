@@ -27,13 +27,12 @@ class CphotosPage(Gtk.Box):
         cdata.get100pics(self.page, direction, datelimit, qty)
         found = len(self.page)
         if found:
-            year = 0
             if direction == 'up':
                 self.page.reverse()
 
-            cdata.datetimerange = [self.page[0].takendate, self.page[-1].takendate]
-            self.bottomdatetime = self.page[-1].takendate
-            self.topdatetime = self.page[0].takendate
+            cdata.datetimerange = [self.page[0][3], self.page[-1][3]]
+            self.bottomdatetime = self.page[-1][3]
+            self.topdatetime = self.page[0][3]
             for tn in self.page[:]:
                 # fpath = getcacheloc(tn)
                 self.todate(tn)
@@ -42,18 +41,18 @@ class CphotosPage(Gtk.Box):
             for datestr in self.dates:
                 mydate = dateBlock(datestr)
                 myYear = datestr.split('-')[0]
-                if year != myYear:
+                if cdata.curyear != myYear:
                     mydate.yearLabel.set_text(myYear)
                 mydate.additems(self.dates[datestr])
                 self.pageBox.append(mydate)
-                year = myYear
+                cdata.curyear = myYear
 
 
 
         return found    
     
     def todate(self, tn):
-        datestr = tn.takendate.split('T')[0]
+        datestr = tn[3].split('T')[0]
         if datestr not in self.dates.keys():
             print('creating new date', datestr)
             self.dates[datestr] = [ tn ]

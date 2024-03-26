@@ -1,4 +1,6 @@
 from gi.repository import Gtk, GLib, GdkPixbuf
+from . import cdata
+from .previews import preview
 #CphotosDate
 @Gtk.Template(resource_path='/com/github/brainstormtrooper/cphotos/dates.ui')
 class dateBlock(Gtk.Box):
@@ -11,13 +13,15 @@ class dateBlock(Gtk.Box):
 
     def __init__(self, date, **kwargs):
         super().__init__(**kwargs)
+
         self.date = date
         self.places = []
     
     def additems(self, items):
         for tn in items:
-            self.doPlaces(tn)
-            widget = tn.getwidget()
+            P = preview(tn)
+            self.doPlaces(P)
+            widget = P.getwidget()
             if widget:
                 self.flow.append(widget)
         placeslabeltext = ', '.join(list(set([w for w in self.places if None != w])))

@@ -30,6 +30,9 @@ datetimerange = [None, None]
 pages = []
 proclock = False
 
+curyear = 0
+curdate = ''
+
 def initdb():
     db3 = db(cachepath)
     if not db3.isInit():
@@ -183,11 +186,12 @@ def get100pics(pagelist, direction = 'down', datelimit = None, qty = 100):
     for pic in picsrows:
         filename = pic[1]
         photospath = pic[2]
+
         print(photospath, filename)
-        realpic = local(photospath, filename)
-        if realpic.getExists():
-            Preview = preview(pic[0], pic[1], pic[2], pic[3], pic[4], pic[5])
-            pagelist.append(Preview)
+        # realpic = local(photospath, filename)
+        if os.path.isfile(os.path.join(photospath, filename)):
+            # Preview = preview(pic[0], pic[1], pic[2], pic[3], pic[4], pic[5])
+            pagelist.append((pic[0], pic[1], pic[2], pic[3], pic[4], pic[5]))
                 
     
 
