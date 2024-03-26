@@ -31,6 +31,7 @@ class CphotosWindow(Adw.ApplicationWindow):
     scroll = Gtk.Template.Child()
     scrollpage = Gtk.Template.Child()
     scrolld = 0
+    threads = []
     pages = []
     topdatetime = None
     bottomdatetime = None
@@ -54,41 +55,26 @@ class CphotosWindow(Adw.ApplicationWindow):
         if dvs == 0:
             dvs = 1
         prct = (e.props.value / (dvs)) * 100
+
         if e.props.value > self.scrolld:
             self.ignorescrollup = False
-            if prct >= 90 and len(cdata.pages) < 3 and not self.ignorescrolldown:
-                thispage = CphotosPage()
-                ct = thispage.fillbox('down', 50)
-                if ct:
-                    self.scrollpage.append(thispage)
-                    cdata.pages.append(cdata.datetimerange)
-                    if len(cdata.pages) == 3:
-                        print('>>> removing a top page')
-                        self.scrollpage.remove(self.scrollpage.get_first_child())
-                        # vadj = self.scroll.get_child().get_vadjustment()
-                        # vadj.set_value(0.5*(vadj.get_upper() - vadj.get_page_size()))
-                        del cdata.pages[0]
-                else:
-                    self.ignorescrolldown = True
+            if prct >= 90 and len(cdata.pages) < 3 and not self.ignorescrolldown and not cdata.proclock:
+                #
+                # thread for new page
+                # mythread = threading.Thread(target=self.update, args=listofargs)
+                #
+                print('here')
+                self.mythread = threading.Thread(target=self.dopage, args=['down', 50])
+                self.mythread.start()
+                
                     
                     
                 
         if e.props.value < self.scrolld:
             self.ignorescrolldown = False
-            if prct <= 10 and len(cdata.pages) < 3 and not self.ignorescrollup:
-                thispage = CphotosPage()
-                ct = thispage.fillbox('up', 50)
-                if ct:
-                    self.scrollpage.prepend(thispage)
-                    cdata.pages.insert(0, cdata.datetimerange)
-                    if len(cdata.pages) == 3:
-                        print('>>> removing a bottom page')
-                        self.scrollpage.remove(self.scrollpage.get_last_child())
-                        vadj = self.scroll.get_child().get_vadjustment()
-                        vadj.set_value(0.5*(vadj.get_upper() - vadj.get_page_size()))
-                        del cdata.pages[-1]
-                else:
-                    self.ignorescrollup = True
+            if prct <= 10 and len(cdata.pages) < 3 and not self.ignorescrollup and not cdata.proclock:
+                self.mythread = threading.Thread(target=self.dopage, args=['up', 50])
+                self.mythread.start()
                 
         self.scrolld = e.props.value
         
@@ -97,6 +83,42 @@ class CphotosWindow(Adw.ApplicationWindow):
     def isdate(self, datetime):
         return 'T'.split(datetime)[0] in self.dates
 
+    def dopage(self, direction, count):
+        print('>>>>>>>>>> dopage')
+
+        cdata.proclock = True
+        
+        thispage = CphotosPage()
+        ct = thispage.fillbox(direction, count)
+        if ct:
+            if direction == 'down':
+                self.scrollpage.append(thispage)
+                cdata.pages.append(cdata.datetimerange)
+            else:
+                self.scrollpage.prepend(thispage)
+                cdata.pages.insert(0, cdata.datetimerange)
+            if len(cdata.pages) == 3:
+                print('>>> removing a page')
+                if direction == 'down':
+                    self.scrollpage.remove(self.scrollpage.get_first_child())
+                    del cdata.pages[0]
+                else:
+                    self.scrollpage.remove(self.scrollpage.get_last_child())
+                    del cdata.pages[-1]
+            # vadj = self.scroll.get_child().get_vadjustment()
+            # vadj.set_value(0.5*(vadj.get_upper() - vadj.get_page_size()))
+                
+        else:
+            if direction == 'down':
+                self.ignorescrolldown = True
+            else:
+                self.ignorescrollup = True
+
+        GObject.idle_add(self.pagedone)
+
+    def pagedone(self):
+        cdata.proclock = False
+        self.mythread.join()
 
     def update(self):
         # https://docs.gtk.org/gtk3/method.Box.reorder_child.html
