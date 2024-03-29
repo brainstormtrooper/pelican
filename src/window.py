@@ -100,11 +100,18 @@ class CphotosWindow(Adw.ApplicationWindow):
             if len(cdata.pages) == 3:
                 print('>>> removing a page')
                 if direction == 'down':
+                    cva = self.scroll.get_child().get_vadjustment().get_value()
+                    nva = cva - self.scrollpage.get_first_child().get_height()
                     self.scrollpage.remove(self.scrollpage.get_first_child())
+                    self.scroll.get_child().get_vadjustment().set_value(nva)
                     del cdata.pages[0]
                 else:
+                    cva = self.scroll.get_child().get_vadjustment().get_value()
+                    nva = cva + self.scrollpage.get_last_child().get_height()
                     self.scrollpage.remove(self.scrollpage.get_last_child())
+                    self.scroll.get_child().get_vadjustment().set_value(nva)
                     del cdata.pages[-1]
+                    
             # vadj = self.scroll.get_child().get_vadjustment()
             # vadj.set_value(0.5*(vadj.get_upper() - vadj.get_page_size()))
                 
