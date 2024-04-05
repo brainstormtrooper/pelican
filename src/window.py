@@ -139,6 +139,7 @@ class CphotosWindow(Adw.ApplicationWindow):
         self.work_thread.join()
 
     def on_search_clicked(self, widget):
+        # https://mail.gnome.org/archives/gtk-app-devel-list/2008-May/msg00056.html
         if widget.get_active():
             print("serachin' ;-)")
         else:
@@ -153,9 +154,7 @@ class CphotosWindow(Adw.ApplicationWindow):
         self.search_button.connect('toggled', self.on_search_clicked)
         thismap = Mapview()
         thismap.getPicsWithLocs()
-        # thismap.doPins()
         thismap.center_map()
-        # thismap.optimum_zoom()
         self.mapbox.append(thismap.widget)
         thispage = CphotosPage()
         thispage.fillbox('down', 50)

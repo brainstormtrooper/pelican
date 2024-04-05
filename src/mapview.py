@@ -31,6 +31,19 @@ class Mapview:
         self.widget.set_vexpand(True)
         self.widget.set_hexpand(True)
 
+        optizoombutton = Gtk.Button(icon_name = 'edit-select-all-symbolic')
+        #optizoombutton.set_valign(Gtk.Align.START)
+        #optizoombutton.set_halign(Gtk.Align.END)
+        #optizoombutton.set_margin_top(50)
+        #optizoombutton.set_margin_end(6)
+        optizoombutton.connect('clicked', self.optimum_zoom)
+        self.widget.get_first_child().get_next_sibling().get_next_sibling().get_next_sibling().get_first_child().append(optizoombutton)
+        
+
+
+
+
+
     def do_group(self, w):
         print("clicked group")
         print(w.get_name())
@@ -64,28 +77,41 @@ class Mapview:
 
     
     """
-    DOESN'T WORK BECAUSE ALL MARKERS EXIST AND NO WAY TO KNOW WHETHER THEY ARE IN VIEW
+    DOESN'T WORK
+    Can't seem to get a reliable size for visible area
     """
-    def optimum_zoom(self, allvis = None):
+    def optimum_zoom(self, allvis = None, backoff = False):
+        self.center_map()
         zl = self.viewport.get_zoom_level()
+        # print('>>> window Width : ', self.widget.get_root().get_width())
+        # print('>>> Map Width : ', self.widget.get_width())
+        max_x = self.marker_layer.get_width()
+        max_y = self.marker_layer.get_height()
+        
         viscount = 0
         # allvis = False
         widgets = self.marker_layer.get_markers()
         for w in widgets:
-            if w.get_mapped():
+            lat = w.get_latitude()
+            lon = w.get_longitude()
+            tmppos = self.viewport.location_to_widget_coords(w, lat, lon)
+            print('>>> tmppos : ', tmppos)
+            if tmppos.x > -(max_x/2) and tmppos.x < max_x/2 and tmppos.y > -(max_y/2) and tmppos.y < max_y/2:
                 viscount += 1
 
         optimum = (allvis == False and viscount == len(widgets))
-        print('optimizing')
-        if viscount == len(widgets) and zl < self.viewport.get_max_zoom_level():
+        print('optimizing : ', viscount, len(widgets))
+        if viscount == len(widgets) and zl < self.viewport.get_max_zoom_level() and not backoff:
+            print('zoom in')
             self.viewport.set_zoom_level(zl + 1)
             if not optimum:
                 self.optimum_zoom(True)
         if viscount < len(widgets) and zl > self.viewport.get_min_zoom_level():
-            
+            print('zoom out')
             self.viewport.set_zoom_level(zl - 1)
             if not optimum:
-                self.optimum_zoom(False)
+                self.optimum_zoom(False, True)
+        
         
 
     def get_square_plot(self, x, y, side):
