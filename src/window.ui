@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk" version="4.0"/>
-  <requires lib="Adw" version="1.0"/>
+  <requires lib="gtk" version="4.0" />
+  <requires lib="Adw" version="1.0" />
   <template class="CphotosWindow" parent="AdwApplicationWindow">
     <property name="default-width">600</property>
     <property name="default-height">300</property>
@@ -16,30 +16,73 @@
                 <property name="menu-model">primary_menu</property>
               </object>
             </child>
+            <child type="end">
+              <object class="GtkToggleButton" id="search_button">
+                <property name="icon-name">edit-find-symbolic</property>
+              </object>
+            </child>
           </object>
         </child>
+
         <child>
-      <object class="GtkScrolledWindow" id="scroll">
-        <property name="hexpand">True</property>
-        <property name="hscrollbar-policy">never</property>
-        <property name="vexpand">True</property>
+          <object class="GtkNotebook" id="notebook">
+            
+              <child>
+                <object class="GtkScrolledWindow" id="scroll">
+                  <property name="hexpand">True</property>
+                  <property name="hscrollbar-policy">never</property>
+                  <property name="vexpand">True</property>
+                  <child>
+                    <object class="GtkBox" id="scrollpage">
+                      <property name="orientation">vertical</property>
+                      <property name="vexpand">True</property>
+                      <property name="hexpand">True</property>
+                    </object>
+                  </child>
+                </object>
+              </child>
+
+              <child type="tab">
+                <object class="GtkLabel">
+                  <property name="visible">True</property>
+                  <property name="can_focus">False</property>
+                  <property name="label" translatable="yes">Browse</property>
+                </object>
+              </child>
+            
+            <child>
+              <object class="GtkBox" id="mapbox">
+                <property name="orientation">vertical</property>
+                <property name="hexpand">True</property>
+                <property name="vexpand">True</property>
+                
+              </object>
+            </child>
+            <child type="tab">
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Map</property>
+              </object>
+            </child>
+             
+            
+          </object>
+        </child>
+
+
+        
+
+
+
         <child>
-          <object class="GtkBox" id="scrollpage">
-            <property name="orientation">vertical</property>
-            <property name="vexpand">true</property>
-            <property name="hexpand">true</property>
+          <object class="GtkRevealer" id="previewreveal">
+            <property name="halign">end</property>
+            <property name="reveal-child">True</property>
+            <property name="transition-type">slide-right</property>
           </object>
         </child>
       </object>
-    </child>
-    <child>
-      <object class="GtkRevealer" id="previewreveal">
-        <property name="halign">end</property>
-        <property name="reveal-child">True</property>
-        <property name="transition-type">slide-right</property>
-      </object>
-    </child>
-    </object>
     </child>
   </template>
   <menu id="primary_menu">
