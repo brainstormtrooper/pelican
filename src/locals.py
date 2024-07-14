@@ -55,8 +55,9 @@ class local:
         exifitems = img._getexif()
         if exifitems:
             self.exif = { ExifTags.TAGS[k]: self.safeType(v) for k, v in exifitems.items() if k in ExifTags.TAGS }
+            
             gpsinfo = {}
-            if 'GPSInfo' in self.exif:
+            if 'GPSInfo' in self.exif and None != self.exif['GPSInfo']:
                 for key in self.exif['GPSInfo'].keys():
                     decode = ExifTags.GPSTAGS.get(key,key)
                     v = self.safeType(self.exif['GPSInfo'][key])
@@ -92,12 +93,12 @@ class local:
                 (d, t, s) = match.groups()
                 sub = s if None != s else '000'
                 dt = datetime.strptime(f"{d}T{t}.{sub}000+0000", '%Y%m%dT%H%M%S.%f%z')
-
-
+                
+                
             #
             # date from exif
             #
-            if self.exif and 'DateTime' in self.exif:
+            if self.exif and 'DateTime' in self.exif and self.exif['DateTime'] != None:
                 try:
                     sub = self.exif['SubsecTime'] if 'SubsecTime' in self.exif else '000000'
                     if len(sub) == 3:
@@ -166,15 +167,20 @@ class local:
         return myhash == self.filehash
 
     def safeType(self, v):
-        try:
-            v = v.decode()
-        except (UnicodeDecodeError, AttributeError):
-            if type(v) is TiffImagePlugin.IFDRational:
-                # v = int(v)
-                try:
-                    v = v._numerator / v._denominator
-                except Exception:
-                    v = None
         if type(v) is tuple:
-            v = [float(i) for i in v]
+            try:
+                v = [float(i) for i in v]
+            except Exception:
+                v = [i for i in v]
+        else: 
+            try:
+                v = v.decode()
+            except (UnicodeDecodeError, AttributeError):
+                if type(v) is TiffImagePlugin.IFDRational:
+                    # v = int(v)
+                    try:
+                        v = v._numerator / v._denominator if v._denominator != 0 else None
+                    except Exception:
+                        v = None
+               
         return v

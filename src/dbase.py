@@ -1,5 +1,6 @@
 import sqlite3
 import uuid
+import os
 
 """
 - Check that tables exist
@@ -11,8 +12,10 @@ class db:
 
     schema_version = 1
 
-    def __init__(self, cachepath):
-        db = f"{cachepath}/pelican.db"
+    def __init__(self, cachepath=None):
+        defpath = os.path.join(os.path.expanduser("~"), ".cache/pelican")
+        mycachepath = cachepath if None != cachepath else defpath
+        db = f"{mycachepath}/pelican.db"
         self.con = sqlite3.connect(db)
         self.con.set_trace_callback(print)
         
@@ -111,6 +114,18 @@ class db:
         stmt = f"SELECT id, filename, filepath, takendate, name, town FROM photos WHERE takendate {dircond} ? ORDER BY takendate {sortd} LIMIT ?"
         rows = []
         for row in cur.execute(stmt, (startdate, limit)):
+            rows.append(row)
+        print(rows)
+        cur.close()
+
+        return rows
+
+    def getPicsWithLocs(self):
+        
+        cur = self.con.cursor()
+        stmt = "SELECT filename, filepath, lat, lon FROM photos WHERE lat NOT NULL"
+        rows = []
+        for row in cur.execute(stmt):
             rows.append(row)
         print(rows)
         cur.close()

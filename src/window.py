@@ -18,6 +18,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 import threading
 from .pager import CphotosPage
+from .mapview import Mapview
 from gi.repository import Adw
 from gi.repository import Gtk, GLib, GdkPixbuf, GObject
 # from PIL import Image
@@ -30,6 +31,8 @@ class CphotosWindow(Adw.ApplicationWindow):
 
     scroll = Gtk.Template.Child()
     scrollpage = Gtk.Template.Child()
+    mapbox = Gtk.Template.Child()
+    search_button = Gtk.Template.Child()
     scrolld = 0
     threads = []
     pages = []
@@ -135,12 +138,24 @@ class CphotosWindow(Adw.ApplicationWindow):
     def updatedone(self):
         self.work_thread.join()
 
+    def on_search_clicked(self, widget):
+        # https://mail.gnome.org/archives/gtk-app-devel-list/2008-May/msg00056.html
+        if widget.get_active():
+            print("serachin' ;-)")
+        else:
+            print("not searchin' :-D")
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         cdata.initdb()
         self.scroll.get_child().get_vadjustment().connect('value_changed', self.scroll_notify_event, self)
         # self.scroll.connect('scroll-event', self.scroll_notify_event)
         self.doindex()
+        self.search_button.connect('toggled', self.on_search_clicked)
+        thismap = Mapview()
+        thismap.getPicsWithLocs()
+        thismap.center_map()
+        self.mapbox.append(thismap)
         thispage = CphotosPage()
         thispage.fillbox('down', 50)
         self.scrollpage.append(thispage)

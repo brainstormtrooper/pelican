@@ -15,7 +15,7 @@ python = import('python')
 
 
 conf = configuration_data()
-conf.set('PYTHON', python.find_installation('python3').path())
+conf.set('PYTHON', python.find_installation('python3').full_path())
 conf.set('VERSION', meson.project_version())
 conf.set('localedir', join_paths(get_option('prefix'), get_option('localedir')))
 conf.set('pkgdatadir', pkgdatadir)
@@ -43,7 +43,8 @@ cphotos_sources = [
   'dbase.py',
   'dates.py',
   'pager.py',
-  'previews.py'
+  'previews.py',
+  'mapview.py'
 ]
 
 install_data(cphotos_sources, install_dir: moduledir)
