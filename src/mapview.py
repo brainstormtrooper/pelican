@@ -10,37 +10,41 @@ from .dbase import db
 
 from . import cdata
 
-class Mapview:
+@Gtk.Template(resource_path='/com/github/brainstormtrooper/cphotos/mapview.ui')
+class Mapview(Shumate.SimpleMap):
+    __gtype_name__ = 'Mapview'
 
-    def __init__(self):
+    optizoombutton = Gtk.Template.Child()
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         # self.zl = 1
         self.rows = []
         self.squares = []
         self.locs = {}
         map_source = Shumate.MapSourceRegistry.new_with_defaults().get_by_id(Shumate.MAP_SOURCE_OSM_MAPNIK)
-        self.widget = Shumate.SimpleMap()
-        self.widget.set_map_source(map_source)
+        # self.widget = Shumate.SimpleMap()
+        # self.widget.set_map_source(map_source)
+        self.set_map_source(map_source)
 
-        self.viewport = self.widget.get_viewport()
+        self.viewport = self.get_viewport()
         self.viewport.set_min_zoom_level(1)
         self.viewport.set_zoom_level(2)
         self.zl = int(self.viewport.get_zoom_level())
         self.viewport.connect('notify::zoom-level', self.on_zoom)
         self.marker_layer = Shumate.MarkerLayer.new(self.viewport)
-        self.widget.add_overlay_layer(self.marker_layer)
-        self.widget.set_vexpand(True)
-        self.widget.set_hexpand(True)
+        # self.widget.add_overlay_layer(self.marker_layer)
+        self.add_overlay_layer(self.marker_layer)
+        # self.widget.set_vexpand(True)
+        # self.widget.set_hexpand(True)
 
-        optizoombutton = Gtk.Button(icon_name = 'edit-select-all-symbolic')
+        # optizoombutton = Gtk.Button(icon_name = 'edit-select-all-symbolic')
         #optizoombutton.set_valign(Gtk.Align.START)
         #optizoombutton.set_halign(Gtk.Align.END)
         #optizoombutton.set_margin_top(50)
         #optizoombutton.set_margin_end(6)
-        optizoombutton.connect('clicked', self.optimum_zoom)
-        self.widget.get_first_child().get_next_sibling().get_next_sibling().get_next_sibling().get_first_child().append(optizoombutton)
-        
-
-
+        self.optizoombutton.connect('clicked', self.optimum_zoom)
+        # self.widget.get_first_child().get_next_sibling().get_next_sibling().get_next_sibling().get_first_child().append(optizoombutton)
 
 
 
@@ -73,7 +77,7 @@ class Mapview:
             xs.append(m.get_latitude())
             ys.append(m.get_longitude())
         center = (sum(xs) / len(points), sum(ys) / len(points))
-        self.widget.get_map().center_on(center[0], center[1])
+        self.get_map().center_on(center[0], center[1])
 
     
     """
@@ -83,8 +87,6 @@ class Mapview:
     def optimum_zoom(self, allvis = None, backoff = False):
         self.center_map()
         zl = self.viewport.get_zoom_level()
-        # print('>>> window Width : ', self.widget.get_root().get_width())
-        # print('>>> Map Width : ', self.widget.get_width())
         max_x = self.marker_layer.get_width()
         max_y = self.marker_layer.get_height()
         
@@ -131,14 +133,7 @@ class Mapview:
         self.rows = db3.getPicsWithLocs()
 
         self.doGroupedPins(self.rows)
-        """
-        for rec in rows:
-
-            if (rec[2], rec[3]) not in self.locs.keys():
-                self.locs[(rec[2], rec[3])] = [ os.path.join(rec[1], rec[0]) ]
-            else:
-                self.locs[(rec[2], rec[3])].append(os.path.join(rec[1], rec[0]))
-        """
+        
 
     def doGroupedPins(self, rows):
         self.marker_layer.remove_all()
@@ -182,7 +177,6 @@ class Mapview:
                 mybtn.connect('clicked', self.do_clicked)
                 mybtn.set_name(sqob['obs'][0]['path'])
                 pop = Gtk.Popover()
-                # pop.set_pointing_to(mybtn.compute_bounds(widget))
                 pop.set_child(Gtk.Label(label = mybtn.get_name()))
             
                 box = Gtk.Box(orientation = 'vertical')
