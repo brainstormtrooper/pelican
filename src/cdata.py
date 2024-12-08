@@ -42,6 +42,9 @@ def addpreview():
     pass
 
 def getlocation(lat, lon):
+    """
+    TODO: Move to local() object?
+    """
     locurl = f"https://nominatim.openstreetmap.org/reverse?format=geocodejson&lat={lat}&lon={lon}"
     rloc = requests.get(locurl)
     locob = json.loads(rloc.text)
@@ -117,6 +120,10 @@ def updatecache():
             i = 0
 
             while cursor.next():
+                """
+                TODO: Redo this: create local() object first, then check that it exists based on hash not name.
+                Flag name changes or moved files (same hash)
+                """
                 i += 1
                 print('Result {0}: {1}'.format(i, cursor.get_string(0)[0]))
                 uri = cursor.get_string(0)[0]

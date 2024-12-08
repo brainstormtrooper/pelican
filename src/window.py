@@ -31,6 +31,7 @@ class CphotosWindow(Adw.ApplicationWindow):
 
     scroll = Gtk.Template.Child()
     scrollpage = Gtk.Template.Child()
+    previewreveal = Gtk.Template.Child()
     mapbox = Gtk.Template.Child()
     search_button = Gtk.Template.Child()
     scrolld = 0
@@ -51,9 +52,16 @@ class CphotosWindow(Adw.ApplicationWindow):
 
 
     """
-    If 2/3 up or down, trigger query for next pagelaod of pics in right direction
+    If 2/3 up or down, trigger query for next pageload of pics in right direction
     """
     def scroll_notify_event(w, e, self):
+        """
+        Callback for scroll event
+
+        Args:
+            w (widget): Not used
+            e (event): The event and properties that triggered the function
+        """
         dvs = e.props.upper - e.props.page_size
         if dvs == 0:
             dvs = 1
@@ -87,17 +95,37 @@ class CphotosWindow(Adw.ApplicationWindow):
         return 'T'.split(datetime)[0] in self.dates
 
     def dopage(self, direction, count):
+        """
+        Builds a page of photos.
+
+        Args:
+            count (int): how many photos to return
+            direction (string): whether we are scrolling up or down - impacts sql and sorting
+        """
         print('>>>>>>>>>> dopage')
 
         cdata.proclock = True
         
+        sp_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        spinner = Gtk.Spinner()
+        sp_box.append(spinner)
+        spinner.start()
+
+        if direction == 'down':
+            self.scrollpage.append(sp_box)
+        else:
+            self.scrollpage.prepend(sp_box)
+
         thispage = CphotosPage()
         ct = thispage.fillbox(direction, count)
         if ct:
+
             if direction == 'down':
+                self.scrollpage.remove(self.scrollpage.get_last_child())
                 self.scrollpage.append(thispage)
                 cdata.pages.append(cdata.datetimerange)
             else:
+                self.scrollpage.remove(self.scrollpage.get_first_child())
                 self.scrollpage.prepend(thispage)
                 cdata.pages.insert(0, cdata.datetimerange)
             if len(cdata.pages) == 3:
@@ -150,7 +178,7 @@ class CphotosWindow(Adw.ApplicationWindow):
         cdata.initdb()
         self.scroll.get_child().get_vadjustment().connect('value_changed', self.scroll_notify_event, self)
         # self.scroll.connect('scroll-event', self.scroll_notify_event)
-        self.doindex()
+        # self.doindex()
         self.search_button.connect('toggled', self.on_search_clicked)
         thismap = Mapview()
         thismap.getPicsWithLocs()
