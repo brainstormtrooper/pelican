@@ -13,10 +13,15 @@ class CphotosPage(Gtk.Box):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        #
+        # List of pics returned from database
+        # pics are removed from here and added to dates list
+        #
         self.page = []
+        #
+        # Pics sorted into dated groups
+        #
         self.dates = {}
-        self.bottomdatetime = None
-        self.topdatetime = None
 
     def fillbox(self, direction = 'down', qty = 100):
         found = 0
@@ -31,8 +36,6 @@ class CphotosPage(Gtk.Box):
                 self.page.reverse()
 
             cdata.datetimerange = [self.page[0][3], self.page[-1][3]]
-            self.bottomdatetime = self.page[-1][3]
-            self.topdatetime = self.page[0][3]
             for tn in self.page[:]:
                 # fpath = getcacheloc(tn)
                 self.todate(tn)
@@ -46,8 +49,6 @@ class CphotosPage(Gtk.Box):
                 mydate.additems(self.dates[datestr])
                 self.pageBox.append(mydate)
                 cdata.curyear = myYear
-
-
 
         return found    
     

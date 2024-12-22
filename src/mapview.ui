@@ -7,12 +7,23 @@
     <property name="hexpand">true</property>
     <property name="vexpand">true</property>
     <child>
-        <object class="GtkButton" id="optizoombutton">
-          <property name="icon_name">edit-select-all-symbolic</property>
-          <property name="halign">start</property>
-        <property name="valign">start</property>
-        <property name="margin-start">6</property>
-        <property name="margin-top">6</property>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="halign">start</property>
+          <property name="valign">start</property>
+          <property name="margin-start">6</property>
+          <property name="margin-top">6</property>
+      <child>
+          <object class="GtkButton" id="optizoombutton">
+            <property name="icon_name">edit-select-all-symbolic</property>
+
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="refreshbutton">
+            <property name="icon_name">view-refresh-symbolic</property>
+          </object>
+        </child>
         </object>
       </child>
   </template>

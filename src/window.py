@@ -35,10 +35,6 @@ class CphotosWindow(Adw.ApplicationWindow):
     mapbox = Gtk.Template.Child()
     search_button = Gtk.Template.Child()
     scrolld = 0
-    threads = []
-    pages = []
-    topdatetime = None
-    bottomdatetime = None
     ignorescrolldown = False
     ignorescrollup = False
     
@@ -118,14 +114,18 @@ class CphotosWindow(Adw.ApplicationWindow):
 
         thispage = CphotosPage()
         ct = thispage.fillbox(direction, count)
+
+        if direction == 'down':
+            self.scrollpage.remove(self.scrollpage.get_last_child())
+        else:
+            self.scrollpage.remove(self.scrollpage.get_first_child())
+
         if ct:
 
             if direction == 'down':
-                self.scrollpage.remove(self.scrollpage.get_last_child())
                 self.scrollpage.append(thispage)
                 cdata.pages.append(cdata.datetimerange)
             else:
-                self.scrollpage.remove(self.scrollpage.get_first_child())
                 self.scrollpage.prepend(thispage)
                 cdata.pages.insert(0, cdata.datetimerange)
             if len(cdata.pages) == 3:

@@ -15,6 +15,7 @@ class Mapview(Shumate.SimpleMap):
     __gtype_name__ = 'Mapview'
 
     optizoombutton = Gtk.Template.Child()
+    refreshbutton = Gtk.Template.Child()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -32,6 +33,8 @@ class Mapview(Shumate.SimpleMap):
         self.viewport.set_zoom_level(2)
         self.zl = int(self.viewport.get_zoom_level())
         self.viewport.connect('notify::zoom-level', self.on_zoom)
+        # self.viewport.connect('notify::longitude', self.getcorners, 'v')
+        # self.viewport.connect('notify::latitude', self.getcorners, 'h')
         self.marker_layer = Shumate.MarkerLayer.new(self.viewport)
         # self.widget.add_overlay_layer(self.marker_layer)
         self.add_overlay_layer(self.marker_layer)
@@ -44,6 +47,7 @@ class Mapview(Shumate.SimpleMap):
         #optizoombutton.set_margin_top(50)
         #optizoombutton.set_margin_end(6)
         self.optizoombutton.connect('clicked', self.optimum_zoom)
+        self.refreshbutton.connect('clicked', self.updatemappics)
         # self.widget.get_first_child().get_next_sibling().get_next_sibling().get_next_sibling().get_first_child().append(optizoombutton)
 
 
@@ -211,11 +215,30 @@ class Mapview(Shumate.SimpleMap):
 
         
 
+    def getcorners(self):
+        """
+        Get corner coordinates for viewport
+        """
+        d = Gtk.Label()
+        max_x = self.marker_layer.get_width()
+        max_y = self.marker_layer.get_height()
+        ll_tl = self.viewport.widget_coords_to_location(d, 0, 0)
+        ll_tr = self.viewport.widget_coords_to_location(d, 0, max_y)
+        ll_bl = self.viewport.widget_coords_to_location(d, max_x, 0)
+        ll_br = self.viewport.widget_coords_to_location(d, max_x, max_y)
+        # tmppos = self.viewport.location_to_widget_coords(w, lat, lon)
+        print('>>> HERE')
+        print(ll_tl)
 
+        return (ll_tl, ll_tr, ll_bl, ll_br)
          
-
+    def updatemappics(self, vpwidget):
+        corners = self.getcorners()
+        newpics = cdata.updatemappics(corners[0], corners[1], corners[2], corners[3])
 
     
+
+    # not used?
     def doPins(self):
         for coords, pics in self.locs.items():
             if len(pics) == 1:
@@ -245,4 +268,4 @@ class Mapview(Shumate.SimpleMap):
                 mypin.set_location(coords[0], coords[1])
                 self.marker_layer.add_marker(mypin)
         
-        
+

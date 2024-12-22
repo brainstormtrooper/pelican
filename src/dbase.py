@@ -33,6 +33,7 @@ class db:
         try:
             cur.execute("CREATE TABLE photos(id, filename, filepath, hash, takendate, device, lat, lon, alt, dir, name, town, state, country, notes, flag, lastopen, opencount)")
             cur.execute("CREATE INDEX name_index ON photos(filename)")
+            cur.execute("CREATE INDEX path_index ON photos(filepath)")
             cur.execute("CREATE INDEX id_index ON photos(id)")
             cur.execute("CREATE INDEX date_index ON photos(takendate)")
             cur.execute("CREATE TABLE collections(id, name, notes, auto)")
@@ -47,13 +48,25 @@ class db:
 
         cur.close()
 
-    def isphotoname(self, name):
+    def getphotosbyhash(self, hash):
+        res = []
+        cur = self.con.cursor()
+        stmt = f"SELECT id FROM photos WHERE hash = ?;"
+        for row in cur.execute(stmt, (name,)):
+            res.append(row)
+        cur.close()
+
+        return res
+
+
+    def isphoto(self, ppath, pname):
         res = False
         cur = self.con.cursor()
-        stmt = f"SELECT id FROM photos WHERE filename = ? LIMIT 1;"
-        row = cur.execute(stmt, (name,)).fetchone()
+        stmt = f"SELECT id FROM photos WHERE filename = ? AND filepath = ? LIMIT 1;"
+        row = cur.execute(stmt, (pname, ppath)).fetchone()
         if row:
             res = True
+        cur.close()
 
         return res
     
@@ -121,7 +134,6 @@ class db:
         return rows
 
     def getPicsWithLocs(self):
-        
         cur = self.con.cursor()
         stmt = "SELECT filename, filepath, lat, lon FROM photos WHERE lat NOT NULL"
         rows = []
@@ -131,3 +143,44 @@ class db:
         cur.close()
 
         return rows
+
+    def deletePic(self, photo_id):
+        cur = self.con.cursor()
+        stmt1 = "DELETE FROM photos WHERE id = ?;"
+        stmt2 = "DELETE FROM phrases WHERE photo_id = ?;"
+        stmt3 = "DELETE FROM members WHERE photo_id = ?;"
+        cur.execute(stmt1, (photo_id,))
+        r1 = cur.rowcount
+        cur.execute(stmt2, (photo_id,))
+        r2 = cur.rowcount
+        cur.execute(stmt3, (photo_id,))
+        r3 = cur.rowcount
+        self.con.commit()
+        cur.close()
+
+        return (r1, r2, r3)
+
+    def getPicsInBox(self, nw, ne, sw, se):
+        cur = self.con.cursor()
+        lat_l = ne[0]
+        lat_r = sw[0]
+        lon_t = ne[1]
+        lon_b = sw[1]
+        stmt = f"""
+        SELECT * FROM photos p
+        WHERE (
+        {lon_t} <= {lon_b} AND ({lon_t} <= p.lon AND p.lon <= {lon_b}) OR
+        {lon_t} >  {lon_b} AND ({lon_t} <= p.lon OR  p.lon <= {lon_b})
+        ) AND (
+        {lat_l} >= {lat_r} AND ({lat_l} >= p.lat AND p.lat >= {lat_r}) OR
+        {lat_l} <  {lat_r} AND ({lat_l} >= p.lat OR  p.lat >= {lat_r})
+        );
+        """
+        rows = []
+        for row in cur.execute(stmt):
+            rows.append(row)
+        print(rows)
+        cur.close()
+
+        return rows
+

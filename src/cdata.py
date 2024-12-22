@@ -12,7 +12,7 @@ from gi.repository import GLib, Gio, Tracker
 from . import pager
 from .locals import local
 from .dbase import db
-from .previews import preview
+# from .previews import preview
 from time import sleep
 from webdav3.client import Client
 from datetime import datetime
@@ -22,12 +22,24 @@ from PIL import Image, ExifTags, TiffImagePlugin
 
 cachepath = os.path.join(os.path.expanduser("~"), ".cache/pelican")
 
-# con = sqlite3.connect(f"{cachepath}/pelican.db")
 
 photosdir = os.path.join(os.path.expanduser("~"), "Pictures/Photos")
 
+#
+# Min and max timestamps for current pages
+# Used by window and pager
+#
 datetimerange = [None, None]
+
+#
+# Holds currently used datetimeranges of built pages
+# Used by window and pager
+#
 pages = []
+
+#
+# Whether a page fetch process is happening - prevents triggering multiples
+#
 proclock = False
 
 curyear = 0
@@ -40,34 +52,6 @@ def initdb():
 
 def addpreview():
     pass
-
-def getlocation(lat, lon):
-    """
-    TODO: Move to local() object?
-    """
-    locurl = f"https://nominatim.openstreetmap.org/reverse?format=geocodejson&lat={lat}&lon={lon}"
-    rloc = requests.get(locurl)
-    locob = json.loads(rloc.text)
-    print(locob)
-    # check possible fields - they change with type of location
-    # locality = locob['features'][0]['properties']['geocoding']['locality']
-    """
-    Might not have city. If not, use name (will be street name if type is highway) otherwise None
-    If Key = tourism, get name
-    """
-    name = None
-    if locob['features'][0]['properties']['geocoding']['osm_key'] == 'tourism':
-        name = locob['features'][0]['properties']['geocoding']['name']
-    town = None
-    if locob['features'][0]['properties']['geocoding']['osm_key'] == 'highway' and 'city' not in locob['features'][0]['properties']['geocoding'].keys():
-        name = locob['features'][0]['properties']['geocoding']['name']
-    if 'city' in locob['features'][0]['properties']['geocoding'].keys():
-        town = locob['features'][0]['properties']['geocoding']['city']
-    
-    state = locob['features'][0]['properties']['geocoding']['state']
-    country = locob['features'][0]['properties']['geocoding']['country']
-
-    return name, town, state, country
 
 def updatephrase(photo_id, words):
     db3 = db(cachepath)
@@ -86,7 +70,7 @@ def updatecache():
     onlyfiles = []
     # onlyfiles = [f for f in os.listdir(photospath) if os.path.isfile(os.path.join(photospath, f))]
     """
-    Need to paginate and loop: 100 picks/loop.
+    Need to paginate and loop: 100 pics/loop.
     Use LIMIT and OFFSET to create pages
     """
     try:
@@ -121,15 +105,14 @@ def updatecache():
 
             while cursor.next():
                 """
-                TODO: Redo this: create local() object first, then check that it exists based on hash not name.
-                Flag name changes or moved files (same hash)
+                Create new entries for pics that haven't been indexed yet
                 """
                 i += 1
                 print('Result {0}: {1}'.format(i, cursor.get_string(0)[0]))
                 uri = cursor.get_string(0)[0]
                 file = uri.split('/')[-1]
                 photospath = '/'.join(uri.replace('file://', '').split('/')[:-1])
-                exists = db3.isphotoname(file)
+                exists = db3.isphoto(photospath, file)
                 if not exists:
                     print('new')
                     newfile = local(photospath, file)
@@ -159,7 +142,7 @@ def updatecache():
 
                     if lat and lon:
                         sleep(0.5)
-                        name, town, state, country = getlocation(lat, lon)
+                        name, town, state, country = newfile.getlocation(lat, lon)
                         ct = db3.addlocationtophoto(newid, name, town, state, country)
                         words = [name, town, state, country]
                         updatephrase(newid, words)
@@ -174,14 +157,15 @@ def updatecache():
     except Exception as e:
         print('Error: {0}'.format(e))
 
-
-    
-    # saved = Query()
     
     
 
 
 def get100pics(pagelist, direction = 'down', datelimit = None, qty = 100):
+    """
+    TODO: If a file has been deleted, delete from db
+    TODO: check for duplicates here
+    """
     # https://stackoverflow.com/questions/64661336/return-value-in-a-python-thread
     db3 = db(cachepath)
     picsrows = []
@@ -199,9 +183,21 @@ def get100pics(pagelist, direction = 'down', datelimit = None, qty = 100):
         if os.path.isfile(os.path.join(photospath, filename)):
             # Preview = preview(pic[0], pic[1], pic[2], pic[3], pic[4], pic[5])
             pagelist.append((pic[0], pic[1], pic[2], pic[3], pic[4], pic[5]))
-                
-    
+        else:
+            dres = deletePic(pic[0])
 
 
-def getblocks():
-    pass
+
+def deletePic(photo_id):
+    print(f">>> deleting pic : {photo_id} !")
+    db3 = db(cachepath)
+    res = db3.deletePic(photo_id)
+
+    return res
+
+
+def updatemappics(nw, ne, sw, se):
+    db3 = db(cachepath)
+    res = db3.getPicsInBox(nw, ne, sw, se)
+
+    return res

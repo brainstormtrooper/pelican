@@ -3,6 +3,8 @@ import io
 import re
 import hashlib
 import math
+import requests
+import json
 from PIL import Image, ExifTags, TiffImagePlugin
 from datetime import datetime, timezone
 
@@ -63,6 +65,31 @@ class local:
                     v = self.safeType(self.exif['GPSInfo'][key])
                     gpsinfo[decode] = v
                 self.exif['GPSInfo'] = gpsinfo
+
+    def getlocation(lat, lon):
+        locurl = f"https://nominatim.openstreetmap.org/reverse?format=geocodejson&lat={lat}&lon={lon}"
+        rloc = requests.get(locurl)
+        locob = json.loads(rloc.text)
+        print(locob)
+        # check possible fields - they change with type of location
+        # locality = locob['features'][0]['properties']['geocoding']['locality']
+        """
+        Might not have city. If not, use name (will be street name if type is highway) otherwise None
+        If Key = tourism, get name
+        """
+        name = None
+        if locob['features'][0]['properties']['geocoding']['osm_key'] == 'tourism':
+            name = locob['features'][0]['properties']['geocoding']['name']
+        town = None
+        if locob['features'][0]['properties']['geocoding']['osm_key'] == 'highway' and 'city' not in locob['features'][0]['properties']['geocoding'].keys():
+            name = locob['features'][0]['properties']['geocoding']['name']
+        if 'city' in locob['features'][0]['properties']['geocoding'].keys():
+            town = locob['features'][0]['properties']['geocoding']['city']
+
+        state = locob['features'][0]['properties']['geocoding']['state']
+        country = locob['features'][0]['properties']['geocoding']['country']
+
+        return name, town, state, country
 
     def doCreatedDate(self):
         if self.exists:
